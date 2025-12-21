@@ -4,7 +4,7 @@ import EventCard from "@/components/EventCard";
 import {events, Event} from "@/lib/constraints";
 
 
-const Page = () => {
+export default function Page  ()  {
     return (
         <div>
             <section>
@@ -26,4 +26,3 @@ const Page = () => {
         </div>
     )
 }
-export default Page
