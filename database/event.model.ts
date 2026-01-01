@@ -53,11 +53,11 @@ const EventSchema = new Schema<IEvent>({
     }
 )
 
-EventSchema.pre('save', function (next:any) {
+EventSchema.pre('validate', async function () {
     const event = this as IEvent;
 
-    // Slug generation
-    if (event.isModified('title') || event.isNew) {
+    // Generate slug if missing
+    if (!event.slug && event.title) {
         event.slug = slugify(event.title, {
             lower: true,
             strict: true,
@@ -66,27 +66,22 @@ EventSchema.pre('save', function (next:any) {
     }
 
     // Normalize date → YYYY-MM-DD
-    if (event.isModified('date')) {
+    if (event.date) {
         const parsedDate = parse(event.date, 'yyyy-MM-dd', new Date());
-        if (!isValid(parsedDate)) {
-            return next(new Error('Invalid date format'));
-        }
+        if (!isValid(parsedDate)) throw new Error('Invalid date format (expected YYYY-MM-DD)');
         event.date = format(parsedDate, 'yyyy-MM-dd');
     }
 
     // Normalize time → HH:mm (24h)
-    if (event.isModified('time')) {
+    if (event.time) {
         const parsedTime = parse(event.time, 'HH:mm', new Date());
-        if (!isValid(parsedTime)) {
-            return next(new Error('Invalid time format'));
-        }
+        if (!isValid(parsedTime)) throw new Error('Invalid time format (expected HH:mm)');
         event.time = format(parsedTime, 'HH:mm');
     }
-
-    next();
 });
 
-EventSchema.index({ slug: 1 }, { unique: true });
+
+
 EventSchema.index({ date: 1, mode: 1 });
 
 const Event = models.Event || model<IEvent>('Event', EventSchema);
