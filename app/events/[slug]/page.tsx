@@ -1,7 +1,12 @@
 import React from 'react'
 import {notFound} from "next/dist/client/components/not-found";
 import Image from "next/image";
+import BookEvent from "@/components/BookEvent";
+import {IEvent} from "@/database";
+import {getSimilarEventsBySlug} from "@/lib/actions/event.actions";
+import EventCard from "@/components/EventCard";
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL
+export const dynamic = "force-dynamic";
 
 const EventDetailItem=({icon,alt,label}:{icon:string,alt:string,label:string}) => (
 
@@ -22,18 +27,32 @@ const EventAgenda=({agendaItems}:{agendaItems:string[]})=>(
     </div>
 )
 
+const EventTags=({tags}:{tags:string[]})=>(
+    <div className="flex flex-row gap-1.5 flex-wrap">
+        {tags.map((tag)=>(
+            <div className="pill" key={tag}>{tag}</div>
+        ))}
+    </div>
+)
+
+
+
 const Page =async ({params}:{params: Promise<{slug:string}>}) => {
     const {slug}=await params;
     const request =await fetch(`${BASE_URL}/api/events/${slug}`);
-    const {event:{description,image,overview,date,time,location,mode,agenda,organizer,audience}}=await request.json()
+    const {event:{title,description,image,overview,date,time,location,mode,agenda,audience,tags,organizer}}=await request.json()
 
     if(!description){
         return notFound();
     }
+
+    const bookings = 10;
+    const similarEvents:IEvent[] = await getSimilarEventsBySlug(slug);
+
     return (
         <section id="event">
             <div className="header">
-                <h1>Event Details:<br/>{slug}</h1>
+                <h1>Event Details:<br/>{title}</h1>
                 <p>{description}</p>
             </div>
             <div className="details">
@@ -52,18 +71,38 @@ const Page =async ({params}:{params: Promise<{slug:string}>}) => {
                         <EventDetailItem icon="/icons/mode.svg" alt="mode" label={mode}/>
                         <EventDetailItem icon="/icons/audience.svg" alt="audience" label={audience}/>
                     </section>
-                    <EventAgenda agendaItems={JSON.parse(agenda[0])}/>
+                    <EventAgenda agendaItems={agenda}/>
 
                     <section className="flex-col-gap-2">
                         <h2>About the Organizer</h2>
                         <p>{organizer}</p>
                     </section>
+                    <EventTags tags={tags}/>
 
                 </div>
 
                 <aside className="booking">
-                    <p className="text-lg font-semibold">Book Event</p>
+                    <div className="booking-card">
+                        <h2>Book Your Spot</h2>
+                        {bookings>0?(
+                            <p className="text-sm">
+                                Join {bookings} people who has already booked their spot!
+                            </p>
+                        ):(
+                            <p className="text-sm">Be the first to book your spot!</p>
+                        )}
+                        <BookEvent/>
+                    </div>
                 </aside>
+            </div>
+            <div className="flex w-full flex-col gap-4 pt-20">
+                <h2>Similar Events</h2>
+                <div className="events">
+                    {similarEvents.length>0 && similarEvents.map((similarEvent:IEvent)=>(
+                        <EventCard key={similarEvent.slug} {...similarEvent}/>
+
+                    ))}
+                </div>
             </div>
         </section>
     )
