@@ -4,12 +4,22 @@ import EventCard from "@/components/EventCard";
 import {IEvent} from "@/database";
 import {cacheLife} from "next/cache";
 
-const BASE_URL=process.env.NEXT_PUBLIC_BASE_URL
+const BASE_URL =
+    process.env.NEXT_PUBLIC_BASE_URL?.trim() &&
+    !process.env.NEXT_PUBLIC_BASE_URL.includes("localhost")
+        ? process.env.NEXT_PUBLIC_BASE_URL.trim()
+        : process.env.NODE_ENV === "development"
+            ? "http://127.0.0.1:3000"
+            : ""; // relative fetch in production if API is in same app
+
 
 export default async function Page  ()  {
     'use cache'
     cacheLife('hours')
-    const response=await fetch(`${BASE_URL}/api/events`)
+    const response = await fetch(`${BASE_URL}/api/events`, {
+        next: { revalidate: 60 }, // optional caching
+    });
+
     const {events}=await response.json()
     return (
         <div>

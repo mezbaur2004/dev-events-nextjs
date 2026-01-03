@@ -6,8 +6,13 @@ import {IEvent} from "@/database";
 import {getSimilarEventsBySlug} from "@/lib/actions/event.actions";
 import EventCard from "@/components/EventCard";
 const BASE_URL =
-    process.env.NEXT_PUBLIC_BASE_URL?.trim() ||
-    (process.env.NODE_ENV === "development" ? "http://127.0.0.1:3000" : "");
+    process.env.NEXT_PUBLIC_BASE_URL?.trim() &&
+    !process.env.NEXT_PUBLIC_BASE_URL.includes("localhost")
+        ? process.env.NEXT_PUBLIC_BASE_URL.trim()
+        : process.env.NODE_ENV === "development"
+            ? "http://127.0.0.1:3000"
+            : "";
+
 
 const EventDetailItem=({icon,alt,label}:{icon:string,alt:string,label:string}) => (
 
