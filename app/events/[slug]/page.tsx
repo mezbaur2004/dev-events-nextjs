@@ -6,7 +6,6 @@ import {IEvent} from "@/database";
 import {getSimilarEventsBySlug} from "@/lib/actions/event.actions";
 import EventCard from "@/components/EventCard";
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL
-export const dynamic = "force-dynamic";
 
 const EventDetailItem=({icon,alt,label}:{icon:string,alt:string,label:string}) => (
 
@@ -39,7 +38,10 @@ const EventTags=({tags}:{tags:string[]})=>(
 
 const Page =async ({params}:{params: Promise<{slug:string}>}) => {
     const {slug}=await params;
-    const request =await fetch(`${BASE_URL}/api/events/${slug}`);
+    const request =await fetch(`${BASE_URL}/api/events/${slug}`,{
+        next: { revalidate: 60 }
+    });
+
     const {event:{title,description,image,overview,date,time,location,mode,agenda,audience,tags,organizer}}=await request.json()
 
     if(!description){
