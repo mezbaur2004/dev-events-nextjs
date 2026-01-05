@@ -1,26 +1,12 @@
+'use server'
 import React from 'react'
 import ExploreBtn from "@/components/ExploreBtn";
 import EventCard from "@/components/EventCard";
 import {IEvent} from "@/database";
-import {cacheLife} from "next/cache";
-
-const BASE_URL =
-    process.env.NEXT_PUBLIC_BASE_URL?.trim() &&
-    !process.env.NEXT_PUBLIC_BASE_URL.includes("localhost")
-        ? process.env.NEXT_PUBLIC_BASE_URL.trim()
-        : process.env.NODE_ENV === "development"
-            ? "http://127.0.0.1:3000"
-            : ""; // relative fetch in production if API is in same app
-
+import {getEvents} from "@/lib/actions/event.server";
 
 export default async function Page  ()  {
-    'use cache'
-    cacheLife('hours')
-    const response = await fetch(`${BASE_URL}/api/events`, {
-        next: { revalidate: 60 }, // optional caching
-    });
-
-    const {events}=await response.json()
+    const events = await getEvents();
     return (
         <div>
             <section>
@@ -34,7 +20,7 @@ export default async function Page  ()  {
                     <h3>Featured Events</h3>
                     <ul className="events">
                         {events && events.length>0 && events.map((event:IEvent)=>(
-                            <EventCard key={event.title} {...event} />
+                             <EventCard key={event.title} {...event} />
                         ))}
                     </ul>
                 </div>

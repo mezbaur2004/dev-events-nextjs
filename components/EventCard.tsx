@@ -4,6 +4,7 @@ import Image from "next/image";
 import {Event} from "@/lib/constraints";
 
 const EventCard = ({image, title, slug, location, date, time}:Event) => {
+
     return (
         <Link href={`/events/${slug}`} id="event-card">
             <Image src={image} alt="not found" width={410} height={300} className="poster"/>
